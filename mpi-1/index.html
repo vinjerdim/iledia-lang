@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conditional Sentences — Bahasa Inggris SMK Fase F</title>
+  <meta name="description"
+    content="Interactive English learning application for SMK / Fase F students: understanding and applying conditional sentences in text and conversation.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <a href="#konten-utama" class="skip-link">Skip to main content</a>
+
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__kicker">Bahasa Inggris — SMK / Fase F</span>
+      <h1 class="app-header__title">Conditional Sentences</h1>
+    </div>
+    <div class="app-header__actions">
+      <button type="button" id="resetAppBtn" class="btn btn--ghost btn--small">Reset</button>
+      <a href="../index.html" class="btn btn--ghost btn--small">Home</a>
+    </div>
+  </header>
+
+  <nav class="stage-nav" aria-label="Learning stages">
+    <ol class="stage-nav__list" id="stageNavList">
+      <!-- Rendered by app.js -->
+    </ol>
+  </nav>
+
+  <main id="konten-utama">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label">
+        <span id="progressLabel">0 of 8 stages completed</span>
+        <span style="font-size:0.78rem;color:var(--color-ink-muted);">Progress saved automatically</span>
+      </div>
+      <div class="progress-bar" role="progressbar" aria-label="Learning progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress-bar__fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="stageContainer">
+      <p style="text-align:center;padding:var(--space-7);color:var(--color-ink-muted);">Loading learning application…</p>
+    </div>
+  </main>
+
+  <div class="app-notice" id="appNotice" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+
+</body>
+
+</html>
