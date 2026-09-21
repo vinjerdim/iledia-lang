@@ -1,0 +1,90 @@
+/* =========================================================================
+   mpi-3/styles.css — Module-specific styles
+   English: Simple Present — Habits & Facts
+
+   Everything generic (tokens, header, stage nav, panels, buttons, forms,
+   feedback boxes, option buttons, noticing tokens, evidence board, pattern
+   tables, sentence builder, rubric, mistakes list, results) comes from
+   ../shared/base.css. Only what belongs to this module alone lives here.
+
+   Sections:
+     1. Notice It — the pen pal profile card
+   ========================================================================= */
+
+/* =========================================================================
+   1. Notice It — the pen pal profile card
+
+   Stage 2 is not an exercise sheet in this module: it is the card Dina is
+   about to send to a stranger, and the card the learner will write their
+   own version of in Stage 7. Framing it as a filled-in form keeps the
+   whole module inside one scenario — and the learner can see, before any
+   rule is named, that the thing they are pulling apart is a thing they
+   will have to build.
+   ========================================================================= */
+
+.profile-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-top: 5px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  margin: var(--space-5) 0 var(--space-4);
+  box-shadow: 0 2px 0 var(--color-border-strong);
+}
+
+.profile-card__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-1);
+}
+
+.profile-card__name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+/* The card already supplies the frame, so the text inside it does not. */
+.profile-card .notice-text {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 480px) {
+  .profile-card {
+    padding: var(--space-4) var(--space-3) var(--space-3);
+  }
+}
+
+/* =========================================================================
+   2. Pattern Lab — a wider answer column
+
+   shared/base.css sizes the answer column at 190px, which is the right
+   width for a dropdown holding "+ es" or "on". The tables in this module
+   ask the learner to choose a whole sentence shape instead — "doesn't +
+   plain verb" — and an option truncated to "doesn't + plain..." is one the
+   learner cannot check their own answer against. The table wrapper already
+   scrolls horizontally, so the extra width costs the narrow screens
+   nothing.
+   ========================================================================= */
+
+.pattern-table__answer {
+  width: 300px;
+}
+
+@media (max-width: 480px) {
+  .pattern-table__answer {
+    width: 220px;
+  }
+}
