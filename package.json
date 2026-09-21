@@ -1,0 +1,19 @@
+{
+  "name": "iledia-lang",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:pages": "node scripts/build-pages.js",
+    "format": "prettier --write ."
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,html}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.0.0"
+  }
+}
