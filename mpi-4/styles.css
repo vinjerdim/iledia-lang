@@ -1,0 +1,191 @@
+/* =========================================================================
+   mpi-4/styles.css — Module-specific styles
+   English: Present Continuous — Happening Now
+
+   Everything generic (tokens, header, stage nav, panels, buttons, forms,
+   feedback boxes, option buttons, noticing tokens, evidence board, pattern
+   tables, sentence builder, rubric, mistakes list, results) comes from
+   ../shared/base.css. Only what belongs to this module alone lives here.
+
+   Sections:
+     1. Notice It — the live broadcast frame
+     2. Go Live — the TBLT step labels and the on-air reminder
+     3. Pattern Lab — a wider answer column
+   ========================================================================= */
+
+/* =========================================================================
+   1. Notice It — the live broadcast frame
+
+   Stage 2 is not an exercise sheet in this module: it is the broadcast
+   Rani has already sent, and the one the learner will have to record a
+   reply to in Stage 7. Framing the transcript as something that is on
+   air right now is not decoration — the whole grammatical point of the
+   module is that these sentences describe a moment somebody is watching,
+   and a page that looks like a worksheet quietly argues the opposite.
+   ========================================================================= */
+
+.live-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-top: 5px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  margin: var(--space-5) 0 var(--space-4);
+  box-shadow: 0 2px 0 var(--color-border-strong);
+}
+
+.live-card__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-error-strong);
+  margin-bottom: var(--space-1);
+}
+
+/* The recording light. It is the one thing on the page that moves, and
+   it stops moving for anyone who has asked the system for less motion. */
+.live-card__dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-error);
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-card__dot {
+    animation: none;
+  }
+}
+
+.live-card__meta {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+/* The card already supplies the frame, so the transcript inside it does not. */
+.live-card .notice-text {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 480px) {
+  .live-card {
+    padding: var(--space-4) var(--space-3) var(--space-3);
+  }
+}
+
+/* =========================================================================
+   2. Go Live — the TBLT step labels and the on-air reminder
+
+   Stage 7 is one stage but three moves — rehearse, plan, report — and a
+   learner who cannot see the seam between them reads the whole thing as
+   one long exercise. The labels are small on purpose: they name the step
+   without competing with the panel headings underneath them.
+   ========================================================================= */
+
+.tblt-step {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary-strong);
+  margin: var(--space-6) 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-primary-soft);
+}
+
+.tblt-step:first-child {
+  margin-top: 0;
+}
+
+/* The last thing the learner reads before the rubric: this script is meant
+   to be spoken, not handed in. */
+.on-air-note {
+  border: 1px dashed var(--color-error);
+  border-radius: var(--radius-md);
+  background: var(--color-error-soft);
+  padding: var(--space-4);
+  margin-top: var(--space-5);
+  font-size: 0.88rem;
+}
+
+.on-air-note__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-error-strong);
+  margin-bottom: var(--space-2);
+}
+
+/* =========================================================================
+   3. Pattern Lab — a wider answer column
+
+   shared/base.css sizes the answer column at 190px, which is the right
+   width for a dropdown holding "+ es" or "on". The tables in this module
+   ask the learner to choose a whole sentence shape instead — "am / is /
+   are + not + verb-ing" — and an option truncated to "am / is / are +
+   not..." is one the learner cannot check their own answer against. The
+   table wrapper already scrolls horizontally, so the extra width costs
+   the narrow screens nothing.
+   ========================================================================= */
+
+.pattern-table__answer {
+  width: 320px;
+}
+
+@media (max-width: 480px) {
+  .pattern-table__answer {
+    width: 230px;
+  }
+}
+
+/* =========================================================================
+   4. Notice It — a marked decoy
+
+   shared/base.css gives .is-miss a red that means "you walked past this".
+   A marked decoy is the opposite mistake — something noticed that was
+   never part of the answer — and painting both red tells the learner
+   only that something went wrong, not which of two different things.
+   Amber separates them, and matches the warning colour the feedback
+   boxes already use for "look again" rather than "wrong".
+   ========================================================================= */
+
+.notice-token.is-stray {
+  background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning-strong);
+  font-weight: 600;
+  cursor: default;
+}

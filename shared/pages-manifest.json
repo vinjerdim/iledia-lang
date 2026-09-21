@@ -22,5 +22,13 @@
     "h1": "Simple Present: Habits & Facts",
     "stageCount": 9,
     "extraBody": "partials/reset-modal.html"
+  },
+  "mpi-4": {
+    "title": "Present Continuous: Happening Now — English",
+    "description": "Interactive learning media that guides learners to discover for themselves when English uses am/is/are + verb-ing for an action in progress and when it uses the plain verb for a routine, how the -ing is spelled, and how the same sentence turns into a negative and into a question — ending in a live broadcast the learners script and read aloud themselves.",
+    "kicker": "English",
+    "h1": "Present Continuous: Happening Now",
+    "stageCount": 9,
+    "extraBody": "partials/reset-modal.html"
   }
 }
