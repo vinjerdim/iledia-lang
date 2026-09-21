@@ -1764,6 +1764,10 @@ function doReset() {
   store.reset();
   mistakeLog = createMistakeLog(State);
   initDerivedState();
+  /* reset() wipes the stored state, so the orders just re-rolled above are
+     unsaved again — the same reason init() saves. Without this, reloading
+     straight after a reset would re-shuffle everything a second time. */
+  saveState();
   closeResetModal();
   machine.updateStageNav();
   machine.updateProgress();

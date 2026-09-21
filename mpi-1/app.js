@@ -1703,6 +1703,10 @@ function doReset() {
   store.reset();
   mistakeLog = createMistakeLog(State);
   initDerivedState();
+  /* reset() wipes the stored state, so the orders just re-rolled above are
+     unsaved again — the same reason init() saves. Without this, reloading
+     straight after a reset would re-shuffle everything a second time. */
+  saveState();
   closeResetModal();
   machine.updateStageNav();
   machine.updateProgress();
@@ -1716,6 +1720,12 @@ function doReset() {
   /* load() replaces State.mistakes wholesale, so the log has to be
      re-bound to the array that is now in State. */
   mistakeLog = createMistakeLog(State);
+
+  /* Persist the freshly rolled orders straight away. Without this, nothing
+     is written until the learner's first interaction, so reloading the very
+     first screen would deal them a second, different arrangement of every
+     list — exactly what storing the order is meant to prevent. */
+  saveState();
 
   machine.buildStageNav();
   machine.updateProgress();
