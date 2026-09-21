@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Learning Media — English</title>
+    <meta
+      name="description"
+      content="A collection of interactive learning media for English: grammar discovered through evidence, patterns, and real practice rather than memorised rules."
+    />
+    <style>
+      :root {
+        --color-bg: #f7f7f2;
+        --color-bg-grid: #eeede4;
+        --color-surface: #ffffff;
+        --color-border: #d9d6cb;
+        --color-border-strong: #b9b6aa;
+        --color-ink: #21262b;
+        --color-ink-muted: #565c5f;
+        --color-primary: #1d6e8c;
+        --color-primary-soft: #d9eef5;
+        --color-primary-strong: #125066;
+        --font-display:
+          'Avenir Next', 'Segoe UI Semibold', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 24px;
+        --space-6: 32px;
+        --space-7: 48px;
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --max-width: 1180px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-body);
+        color: var(--color-ink);
+        background-color: var(--color-bg);
+        background-image:
+          linear-gradient(var(--color-bg-grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--color-bg-grid) 1px, transparent 1px);
+        background-size: 28px 28px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-display);
+        color: var(--color-ink);
+        margin: 0 0 var(--space-3) 0;
+        line-height: 1.25;
+      }
+
+      p {
+        margin: 0 0 var(--space-3) 0;
+      }
+
+      /* ── Header ── */
+      .site-header {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        padding: var(--space-5);
+      }
+
+      .site-header__inner {
+        max-width: var(--max-width);
+        margin: 0 auto;
+      }
+
+      .site-header__kicker {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+        margin-bottom: 4px;
+      }
+
+      .site-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: var(--space-2);
+      }
+
+      .site-header__desc {
+        color: var(--color-ink-muted);
+        font-size: 0.95rem;
+        max-width: none;
+        margin: 0;
+      }
+
+      /* ── Main ── */
+      .main {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: var(--space-6) var(--space-5);
+        flex: 1;
+        width: 100%;
+      }
+
+      .section-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-ink-muted);
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      /* ── Cards ── */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--space-5);
+        margin-bottom: var(--space-7);
+      }
+
+      .card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: var(--color-ink);
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+        overflow: hidden;
+      }
+
+      .card:hover {
+        border-color: var(--color-primary);
+        box-shadow: 0 4px 16px rgba(29, 110, 140, 0.12);
+      }
+
+      .card:focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+
+      .card__stripe {
+        height: 4px;
+        background: var(--color-primary);
+      }
+
+      .card__body {
+        padding: var(--space-5);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card__badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: var(--color-primary-soft);
+        color: var(--color-primary-strong);
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin-bottom: 14px;
+        align-self: flex-start;
+      }
+
+      .card__title {
+        font-size: 1.05rem;
+        font-family: var(--font-display);
+        margin-bottom: var(--space-2);
+      }
+
+      .card__desc {
+        font-size: 0.875rem;
+        color: var(--color-ink-muted);
+        line-height: 1.55;
+        margin: 0 0 20px;
+        flex: 1;
+      }
+
+      .card__cta {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .card__cta::after {
+        content: '→';
+      }
+
+      /* ── Footer ── */
+      .site-footer {
+        text-align: center;
+        padding: var(--space-5);
+        color: var(--color-ink-muted);
+        font-size: 0.8rem;
+        border-top: 1px solid var(--color-border);
+        background: var(--color-surface);
+      }
+
+      .link {
+        color: var(--color-primary);
+        text-decoration: none;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Topic filter (segmented control) ── */
+      .tp-filter {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
+        flex-wrap: wrap;
+      }
+
+      .tp-filter__label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-ink-muted);
+        white-space: nowrap;
+      }
+
+      .tp-filter__group {
+        display: flex;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 9999px;
+        padding: 3px;
+        gap: 2px;
+      }
+
+      .tp-filter__btn {
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 5px 16px;
+        background: none;
+        border: none;
+        border-radius: 9999px;
+        cursor: pointer;
+        color: var(--color-ink-muted);
+        transition:
+          background 0.15s,
+          color 0.15s;
+        white-space: nowrap;
+      }
+
+      .tp-filter__btn:hover {
+        color: var(--color-ink);
+      }
+
+      .tp-filter__btn[aria-pressed='true'] {
+        background: var(--color-primary);
+        color: #ffffff;
+      }
+
+      @media (max-width: 600px) {
+        .site-header h1 {
+          font-size: 1.35rem;
+        }
+
+        .main {
+          padding: var(--space-4) var(--space-3);
+        }
+
+        .card-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <span class="site-header__kicker">Interactive Learning Media</span>
+        <h1>English</h1>
+        <p class="site-header__desc">
+          Each module walks learners through a pattern the way a linguist would meet it: notice it,
+          collect the evidence, write the rule, then test whether the rule survives.
+        </p>
+        <p class="site-header__desc">Choose the module that matches what you are studying.</p>
+      </div>
+    </header>
+
+    <main class="main" id="module-list">
+      <p class="section-label">Modules</p>
+      <div class="tp-filter" data-panel="module-list"></div>
+
+      <div class="card-grid" role="list">
+        <a
+          class="card"
+          href="mpi-1/index.html"
+          role="listitem"
+          data-tp="1"
+          aria-label="Open the module: To Be, Pronouns and There is/are"
+        >
+          <div class="card__stripe"></div>
+          <div class="card__body">
+            <span class="card__badge">MPI 1</span>
+            <h2 class="card__title">To Be, Pronouns &amp; There is/are</h2>
+            <p class="card__desc">
+              Discover for yourself what decides
+              <em>am/is/are</em>
+              ,
+              <em>this/that/these/those</em>
+              , possessive adjectives, and
+              <em>there is/there are</em>
+              — then use them to describe a room you actually know.
+            </p>
+            <span class="card__cta">Open module</span>
+          </div>
+        </a>
+
+        <a
+          class="card"
+          href="mpi-19/index.html"
+          role="listitem"
+          data-tp="1"
+          aria-label="Open the module: Conditional Sentences"
+        >
+          <div class="card__stripe"></div>
+          <div class="card__body">
+            <span class="card__badge">MPI 19</span>
+            <h2 class="card__title">Conditional Sentences</h2>
+            <p class="card__desc">
+              Work out the four conditional types from real examples, build them sentence by
+              sentence, and apply them in a reading text and a conversation.
+            </p>
+            <span class="card__cta">Open module</span>
+          </div>
+        </a>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p style="margin: 0">
+        iLedia — interactive learning media.
+        <a class="link" href="https://github.com/vinjerdim/iledia-lang">Source on GitHub</a>
+      </p>
+    </footer>
+
+    <script>
+      // ── Topic filter (data-driven segmented control) ──
+      // Stays invisible until at least two distinct data-tp values exist,
+      // so it appears by itself as more modules are added.
+      document.querySelectorAll('.tp-filter').forEach((filterEl) => {
+        const panelId = filterEl.dataset.panel;
+        const panel = document.getElementById(panelId);
+        const cards = Array.from(panel.querySelectorAll('.card[data-tp]'));
+
+        // Collect unique topic values in document order
+        const tpValues = [...new Set(cards.map((c) => c.dataset.tp))];
+        if (tpValues.length < 2) return; // nothing to filter
+
+        const label = document.createElement('span');
+        label.className = 'tp-filter__label';
+        label.textContent = 'Topic:';
+        filterEl.appendChild(label);
+
+        const group = document.createElement('div');
+        group.className = 'tp-filter__group';
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', 'Choose a topic');
+        filterEl.appendChild(group);
+
+        tpValues.forEach((tp, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'tp-filter__btn';
+          btn.textContent = `Topic ${tp}`;
+          btn.dataset.tp = tp;
+          btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+          btn.setAttribute('type', 'button');
+          group.appendChild(btn);
+        });
+
+        function applyFilter(activeTp) {
+          cards.forEach((card) => {
+            card.style.display = card.dataset.tp === activeTp ? '' : 'none';
+          });
+          group.querySelectorAll('.tp-filter__btn').forEach((btn) => {
+            btn.setAttribute('aria-pressed', btn.dataset.tp === activeTp ? 'true' : 'false');
+          });
+        }
+
+        applyFilter(tpValues[0]);
+
+        group.addEventListener('click', (e) => {
+          const btn = e.target.closest('.tp-filter__btn');
+          if (btn) applyFilter(btn.dataset.tp);
+        });
+      });
+    </script>
+  </body>
+</html>
