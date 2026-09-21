@@ -8,7 +8,7 @@
    module's app.js can call it directly.
 
    Sections:
-    1. Text & answer-checking utilities
+    1. Text, list & answer-checking utilities
     2. Notice (toast)
     3. Render utilities
     4. Stage navigation machine
@@ -18,7 +18,7 @@
    ============================================================ */
 
 /* ============================================================
-   1. TEXT & ANSWER-CHECKING UTILITIES
+   1. TEXT, LIST & ANSWER-CHECKING UTILITIES
    ============================================================ */
 
 function esc(str) {
@@ -71,6 +71,28 @@ function checkTextAnswer(input, accepted) {
 }
 
 /*
+ * Plain text from a label that may carry <em>/<strong> markup — used
+ * wherever a value is escaped for display again, e.g. the mistake list,
+ * where the markup would otherwise be shown to the learner as source.
+ */
+function stripTags(html) {
+  return String(html)
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&rsquo;/g, "'")
+    .replace(/&mdash;/g, '—')
+    .replace(/&amp;/g, '&')
+    .trim();
+}
+
+/* Word count of a free-text answer, used by the "write your own" stages. */
+function countWords(str) {
+  var trimmed = String(str || '').trim();
+  if (!trimmed) return 0;
+  return trimmed.split(/\s+/).length;
+}
+
+/*
  * An unbiased index in [0, limit) taken from the platform CSPRNG.
  *
  * Rejection sampling, rather than a plain modulo: 2^32 is not a multiple
@@ -99,6 +121,48 @@ function shuffle(arr) {
     out[j] = tmp;
   }
   return out;
+}
+
+/* The ids of a list of { id, ... } records, in their data-file order. */
+function idsOf(list) {
+  return list.map(function (item) {
+    return item.id;
+  });
+}
+
+function findById(list, id) {
+  return list.filter(function (item) {
+    return item.id === id;
+  })[0];
+}
+
+/* A copy of `list` reordered to follow `ids`. Records whose id is missing
+   from `ids` are dropped, so a stale stored order can never silently hide
+   half a question's options — callers pair this with keepShuffledOrder(),
+   which re-seeds the order whenever it stops matching the data. */
+function orderByIds(list, ids) {
+  return ids
+    .map(function (id) {
+      return findById(list, id);
+    })
+    .filter(function (item) {
+      return !!item;
+    });
+}
+
+/* Keeps a stored display order if it still covers exactly `ids`, otherwise
+   builds a fresh shuffle. Re-using the stored order is what stops cards and
+   answer options from jumping around on every re-render or reload; the
+   staleness check is what re-seeds it after a reset or a data file that
+   gained an entry. */
+function keepShuffledOrder(current, ids) {
+  var usable =
+    Array.isArray(current) &&
+    current.length === ids.length &&
+    ids.every(function (id) {
+      return current.indexOf(id) !== -1;
+    });
+  return usable ? current : shuffle(ids);
 }
 
 /* ============================================================
@@ -320,6 +384,13 @@ function createStageMachine(opts) {
 /* ============================================================
    5. EXERCISE STAGE
    ============================================================ */
+
+/* The label of one option of a 'choice' question, by its id — the text a
+   mistake log or a review stage shows back instead of the bare id. */
+function optionLabel(s, optId) {
+  var opt = findById(s.options || [], optId);
+  return opt ? opt.label : optId;
+}
 
 /*
  * Builds one question-practice stage — the pattern that repeats in nearly

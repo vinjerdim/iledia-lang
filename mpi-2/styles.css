@@ -1,0 +1,68 @@
+/* =========================================================================
+   mpi-2/styles.css — Module-specific styles
+   English: Place, Quantity & Time
+
+   Everything generic (tokens, header, stage nav, panels, buttons, forms,
+   feedback boxes, option buttons, noticing tokens, evidence board, pattern
+   tables, sentence builder, rubric, mistakes list, results) comes from
+   ../shared/base.css. Only what belongs to this module alone lives here.
+
+   Sections:
+     1. Notice It — the workshop information board
+   ========================================================================= */
+
+/* =========================================================================
+   1. Notice It — the workshop information board
+
+   Stage 2 is not an exercise sheet in this module: it is the board beside
+   the workshop door that the learner is about to rewrite. Framing it as a
+   pinned notice keeps the whole module inside one scenario.
+   ========================================================================= */
+
+.info-board {
+  position: relative;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  margin: var(--space-5) 0 var(--space-4);
+  box-shadow: 0 2px 0 var(--color-border-strong);
+}
+
+/* The pin that holds the notice to the board. */
+.info-board::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+}
+
+.info-board__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+/* The board already supplies the frame, so the text inside it does not. */
+.info-board .notice-text {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 480px) {
+  .info-board {
+    padding: var(--space-4) var(--space-3) var(--space-3);
+  }
+}
