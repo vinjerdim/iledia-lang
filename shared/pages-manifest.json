@@ -6,5 +6,13 @@
     "h1": "To Be, Pronouns & There is/are",
     "stageCount": 9,
     "extraBody": "partials/reset-modal.html"
+  },
+  "mpi-2": {
+    "title": "Place, Quantity & Time — English",
+    "description": "Interactive learning media that guides learners to discover for themselves what decides a regular plural ending, which word places a thing in space, which word places an event in time, and which question word asks for each of them.",
+    "kicker": "English",
+    "h1": "Place, Quantity & Time",
+    "stageCount": 9,
+    "extraBody": "partials/reset-modal.html"
   }
 }

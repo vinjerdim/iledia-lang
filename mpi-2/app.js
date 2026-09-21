@@ -1,11 +1,12 @@
 'use strict';
 
 /* ============================================================
-   app.js — Application logic for MPI 1
-   English: To Be, Pronouns & There is/are
+   app.js — Application logic for MPI 2
+   English: Place, Quantity & Time
 
-   Shared utilities (esc, showNotice, buildFeedbackBox, the stage
-   machine, the exercise stage, the store) live in shared/engine.js.
+   Shared utilities (esc, shuffle, the ordering helpers, showNotice,
+   buildFeedbackBox, the stage machine, the exercise stage, the store)
+   live in shared/engine.js.
 
    Sections:
     1.  Constants
@@ -18,7 +19,7 @@
     8.  Stage: Evidence Board
     9.  Stage: Pattern Lab
     10. Stage: Test Your Rules
-    11. Stage: Describe Your Space
+    11. Stage: Describe Your Workshop
     12. Stage: Reflection
     13. Stage: Results
     14. Helpers
@@ -48,12 +49,15 @@ var STAGE_LABELS = [
   'Evidence Board',
   'Pattern Lab',
   'Test Your Rules',
-  'Describe Your Space',
+  'Describe Your Workshop',
   'Reflection',
   'Results',
 ];
 
-var STORAGE_KEY = 'eng-tobe-pronouns-v1';
+var STORAGE_KEY = 'eng-place-quantity-time-v1';
+
+/* Enough markers for the longest option list any stage shows. */
+var OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /* ============================================================
    2. STATE & STORAGE
@@ -68,6 +72,7 @@ var State = {
   noticeChecked: false,
 
   /* Stage 3 — Your Questions */
+  questionOrder: [],
   selectedQuestions: {},
   ownQuestion: '',
   questionsSubmitted: false,
@@ -79,6 +84,7 @@ var State = {
   evidenceChecked: false,
 
   /* Stage 5 — Pattern Lab */
+  patternOptionOrder: {},
   patternRuleOrder: {},
   patternAnswers: {},
   patternTableDone: {},
@@ -86,10 +92,11 @@ var State = {
   patternRules: {},
 
   /* Stage 6 — Test Your Rules */
+  verificationOptionOrder: {},
   verificationIdx: 0,
   verificationExercises: [],
 
-  /* Stage 7 — Describe Your Space */
+  /* Stage 7 — Describe Your Workshop */
   builderIdx: 0,
   builderPools: {},
   builderPlaced: {},
@@ -115,26 +122,54 @@ var mistakeLog = createMistakeLog(State);
  * Builds every array/map whose shape depends on DATA. Called at start-up
  * and again after a reset, so a data file that gains a question does not
  * leave a stale array behind.
+ *
+ * This is also where every list a learner answers from is shuffled. Each
+ * order is stored in State rather than re-rolled per render: an option
+ * that moves while it is being read is a usability bug, and a reload must
+ * not hand the learner a second, easier arrangement of the same question.
  */
 function initDerivedState() {
   ensureExerciseArray(State, 'verificationExercises', DATA.verification.soal, defaultExerciseEntry);
 
+  /* The investigation questions are written pattern-first in data.js,
+     which would quietly tell the learner which ones "count". */
+  State.questionOrder = keepShuffledOrder(
+    State.questionOrder,
+    idsOf(DATA.problemStatement.candidates)
+  );
+
   /* The evidence cards arrive grouped by bucket in data.js, which would
-     give the answer away, so the tray order is shuffled once and then kept
-     — the cards must not jump around on every re-render or page reload. */
+     give the answer away, so the tray order is shuffled. */
   State.evidenceOrder = keepShuffledOrder(State.evidenceOrder, idsOf(DATA.evidence.cards));
 
-  /* Same for the rule statements: the correct one is written first in
-     every table, so an unshuffled list would answer itself. */
   DATA.patternLab.tables.forEach(function (t) {
+    /* The dropdown lists the answers in the order the rows need them —
+       first row first — so an unshuffled select is a free answer key. */
+    State.patternOptionOrder[t.id] = keepShuffledOrder(State.patternOptionOrder[t.id], t.options);
+
+    /* Same for the rule statements: the correct one is written first in
+       every table, so an unshuffled list would answer itself. */
     State.patternRuleOrder[t.id] = keepShuffledOrder(
       State.patternRuleOrder[t.id],
       idsOf(t.rule.options)
     );
   });
 
-  /* The word bank is shuffled once and then kept, so the chips do not
-     jump around on every re-render or page reload. */
+  /* The exercise stage renders `s.options` straight from DATA, so the
+     shuffle is applied to that array itself before the first render. The
+     A/B/C markers are positional and the answer is matched by id, so
+     reordering here changes nothing but what the learner sees. */
+  DATA.verification.soal.forEach(function (s) {
+    if (!s.options) return;
+    State.verificationOptionOrder[s.id] = keepShuffledOrder(
+      State.verificationOptionOrder[s.id],
+      idsOf(s.options)
+    );
+    s.options = orderByIds(s.options, State.verificationOptionOrder[s.id]);
+  });
+
+  /* The word bank holds the sentence in order plus its distractors, so it
+     has to be shuffled before it is ever shown. */
   DATA.generalization.builder.forEach(function (b) {
     var pool = State.builderPools[b.id];
     if (!Array.isArray(pool) || pool.length !== b.parts.length + b.distractors.length) {
@@ -295,15 +330,15 @@ function renderOrientation(container) {
    ============================================================ */
 
 /* A stable key for one token, so marks survive a reload. */
-function noticeKey(si, ti) {
-  return 's' + si + '-' + ti;
+function noticeKey(li, ti) {
+  return 'l' + li + '-' + ti;
 }
 
 function noticeTargets() {
   var out = [];
-  DATA.noticeIt.text.forEach(function (sentence, si) {
-    sentence.forEach(function (tok, ti) {
-      if (typeof tok === 'object' && tok.w) out.push(noticeKey(si, ti));
+  DATA.noticeIt.text.forEach(function (line, li) {
+    line.forEach(function (tok, ti) {
+      if (typeof tok === 'object' && tok.w) out.push(noticeKey(li, ti));
     });
   });
   return out;
@@ -322,11 +357,11 @@ function renderNoticeIt(container) {
   var checked = State.noticeChecked;
 
   var textHTML = D.text
-    .map(function (sentence, si) {
-      var inner = sentence
+    .map(function (line, li) {
+      var inner = line
         .map(function (tok, ti) {
           if (typeof tok === 'string') return esc(tok);
-          var key = noticeKey(si, ti);
+          var key = noticeKey(li, ti);
           var marked = !!State.noticeMarked[key];
           var cls = 'notice-token';
           if (checked) {
@@ -372,8 +407,8 @@ function renderNoticeIt(container) {
           score.hits +
           ' of the ' +
           score.total +
-          ' shape-changing words.</strong> ' +
-          'The ones you missed are outlined in red above.'
+          ' working words.</strong> ' +
+          'The ones you walked past are outlined in red above.'
       ) +
       '<div class="panel panel--info" style="margin-top:var(--space-4);">' +
       '<h3>' +
@@ -413,9 +448,11 @@ function renderNoticeIt(container) {
       '<p style="font-size:0.88rem;color:var(--color-ink-muted);">' +
       D.instruction +
       '</p>' +
+      '<div class="info-board">' +
+      '<span class="info-board__label">Workshop 3 &middot; Information board</span>' +
       '<div class="notice-text">' +
       textHTML +
-      '</div>' +
+      '</div></div>' +
       feedbackHTML +
       '</div>' +
       actionHTML
@@ -458,11 +495,17 @@ function renderNoticeIt(container) {
    7. STAGE: YOUR QUESTIONS  (problem statement)
    ============================================================ */
 
+/* The candidates in their shuffled order, so the pattern questions do not
+   simply sit at the top of the list. */
+function questionCandidates() {
+  return orderByIds(DATA.problemStatement.candidates, State.questionOrder || []);
+}
+
 function renderQuestions(container) {
   var D = DATA.problemStatement;
   var submitted = State.questionsSubmitted;
 
-  var listHTML = D.candidates
+  var listHTML = questionCandidates()
     .map(function (q, i) {
       var selected = !!State.selectedQuestions[q.id];
       var cls = 'option-btn';
@@ -513,7 +556,8 @@ function renderQuestions(container) {
     actionHTML =
       '<div class="btn-group btn-group--end">' +
       '<button type="button" class="btn btn--primary btn--large" id="questionsNextBtn">' +
-      'Collect the evidence &rarr;</button></div>';
+      esc(D.nextButtonLabel) +
+      '</button></div>';
   } else {
     actionHTML =
       '<div class="btn-group btn-group--end">' +
@@ -603,15 +647,7 @@ function evidenceScore() {
 /* The cards in the shuffled tray order, so a learner cannot read the
    grouping off the order they were written in. */
 function evidenceCards() {
-  var byId = {};
-  DATA.evidence.cards.forEach(function (c) {
-    byId[c.id] = c;
-  });
-  return (State.evidenceOrder || [])
-    .map(function (id) {
-      return byId[id];
-    })
-    .filter(Boolean);
+  return orderByIds(DATA.evidence.cards, State.evidenceOrder || []);
 }
 
 function renderEvidence(container) {
@@ -783,7 +819,7 @@ function renderEvidence(container) {
   if (redoBtn) {
     redoBtn.addEventListener('click', function () {
       /* Only the cards on the wrong board go back, so a learner does not
-         have to re-sort the twelve they already got right. */
+         have to re-sort the ones they already placed correctly. */
       DATA.evidence.cards.forEach(function (c) {
         if (State.evidencePlacement[c.id] !== c.bucket) delete State.evidencePlacement[c.id];
       });
@@ -845,6 +881,10 @@ function renderPatternLab(container) {
         })
         .join('');
 
+      /* The answers are offered in their shuffled order, the same one on
+         every row, so the dropdown cannot be read as an answer key. */
+      var tableOptions = State.patternOptionOrder[table.id] || table.options;
+
       var rowsHTML = table.rows
         .map(function (row, i) {
           var key = patternKey(table.id, i);
@@ -855,7 +895,7 @@ function renderPatternLab(container) {
           }
           var optionsHTML = ['<option value="">— choose —</option>']
             .concat(
-              table.options.map(function (o) {
+              tableOptions.map(function (o) {
                 return (
                   '<option value="' +
                   esc(o) +
@@ -896,9 +936,7 @@ function renderPatternLab(container) {
 
       var ruleHTML = '';
       if (unlocked) {
-        var ruleOptions = (State.patternRuleOrder[table.id] || []).map(function (id) {
-          return findById(table.rule.options, id);
-        });
+        var ruleOptions = orderByIds(table.rule.options, State.patternRuleOrder[table.id] || []);
         var optionsListHTML = ruleOptions
           .map(function (opt, i) {
             var cls = 'option-btn';
@@ -919,7 +957,7 @@ function renderPatternLab(container) {
               (chosenRule ? ' disabled' : '') +
               '>' +
               '<span class="option-btn__marker" aria-hidden="true">' +
-              ['A', 'B', 'C'][i] +
+              OPTION_LETTERS[i] +
               '</span>' +
               '<span class="option-btn__text">' +
               opt.label +
@@ -986,7 +1024,8 @@ function renderPatternLab(container) {
   var actionHTML = allRulesDone
     ? '<div class="btn-group btn-group--end">' +
       '<button type="button" class="btn btn--primary btn--large" id="patternNextBtn">' +
-      'Test my rules &rarr;</button></div>'
+      esc(D.nextButtonLabel) +
+      '</button></div>'
     : '<p class="context-note">Complete all four tables and state each rule to continue.</p>';
 
   container.innerHTML = stageShell(
@@ -1060,6 +1099,7 @@ var verificationStage = createExerciseStage({
   goal: DATA.verification.goal,
   instruction: DATA.verification.instruction,
   nextButtonLabel: DATA.verification.nextButtonLabel,
+  letters: OPTION_LETTERS,
   getExercises: function () {
     return State.verificationExercises;
   },
@@ -1076,7 +1116,7 @@ var verificationStage = createExerciseStage({
     return (
       '<div class="question-number-label">Question ' +
       (DATA.verification.soal.indexOf(s) + 1) +
-      ' · ' +
+      ' &middot; ' +
       esc(ruleName(s.rule)) +
       '</div>' +
       '<div class="scenario-box">' +
@@ -1120,7 +1160,7 @@ function renderVerification(container) {
 }
 
 /* ============================================================
-   11. STAGE: DESCRIBE YOUR SPACE  (generalisation)
+   11. STAGE: DESCRIBE YOUR WORKSHOP  (generalisation)
    ============================================================ */
 
 function builderSentence(b) {
@@ -1279,7 +1319,7 @@ function renderGeneralization(container) {
   }
 
   container.innerHTML = stageShell(
-    'Describe Your Space',
+    'Describe Your Workshop',
     D.kicker,
     D.goal,
     '<div class="panel">' +
@@ -1344,7 +1384,7 @@ function renderGeneralization(container) {
         if (!ok) {
           mistakeLog.record({
             stage: 'generalization',
-            stageLabel: 'Describe Your Space',
+            stageLabel: 'Describe Your Workshop',
             questionId: b.id,
             label: b.context,
             yourAnswer: builderSentence(b).join(' '),
@@ -1462,6 +1502,8 @@ function renderReflection(container) {
     })
     .join('');
 
+  /* The confidence options are NOT shuffled: they are a scale, and a
+     scale whose rungs move is no longer a scale. */
   var confidenceHTML = D.confidenceOptions
     .map(function (opt, i) {
       var on = State.confidence === opt.id;
@@ -1474,7 +1516,7 @@ function renderReflection(container) {
         (on ? 'true' : 'false') +
         '">' +
         '<span class="option-btn__marker" aria-hidden="true">' +
-        ['A', 'B', 'C'][i] +
+        OPTION_LETTERS[i] +
         '</span>' +
         '<span class="option-btn__text">' +
         esc(opt.label) +
@@ -1555,7 +1597,7 @@ function collectScores() {
       correct: verificationCorrect,
       total: DATA.verification.soal.length,
     },
-    { label: 'Describe Your Space', correct: builder.correct, total: builder.total },
+    { label: 'Describe Your Workshop', correct: builder.correct, total: builder.total },
   ];
 }
 
@@ -1607,7 +1649,7 @@ function renderResults(container) {
 
   var writingHTML = State.ownWriting.trim()
     ? '<div class="panel">' +
-      '<h3>Your description</h3>' +
+      '<h3>Your information board</h3>' +
       '<p class="own-writing">' +
       esc(State.ownWriting).replace(/\n/g, '<br>') +
       '</p></div>'
@@ -1671,10 +1713,10 @@ function renderResults(container) {
    ============================================================ */
 
 var RULE_NAMES = {
-  tobe: 'to be',
-  pointing: 'pointing words',
-  possessive: 'pronouns & possessives',
-  existence: 'there is / there are',
+  plural: 'plural endings',
+  place: 'place words',
+  time: 'time words',
+  asking: 'question words',
   mixed: 'all four rules',
 };
 
