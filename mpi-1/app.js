@@ -73,6 +73,7 @@ var State = {
   questionsSubmitted: false,
 
   /* Stage 4 — Evidence Board */
+  evidenceOrder: [],
   evidencePlacement: {},
   evidencePicked: null,
   evidenceChecked: false,
@@ -116,6 +117,21 @@ var mistakeLog = createMistakeLog(State);
  */
 function initDerivedState() {
   ensureExerciseArray(State, 'verificationExercises', DATA.verification.soal, defaultExerciseEntry);
+
+  /* The evidence cards arrive grouped by bucket in data.js, which would
+     give the answer away, so the tray order is shuffled once and then kept
+     — the cards must not jump around on every re-render or page reload. */
+  var cardIds = DATA.evidence.cards.map(function (c) {
+    return c.id;
+  });
+  var order = State.evidenceOrder;
+  var orderIsStale =
+    !Array.isArray(order) ||
+    order.length !== cardIds.length ||
+    cardIds.some(function (id) {
+      return order.indexOf(id) === -1;
+    });
+  if (orderIsStale) State.evidenceOrder = shuffle(cardIds);
 
   /* The word bank is shuffled once and then kept, so the chips do not
      jump around on every re-render or page reload. */
@@ -584,11 +600,26 @@ function evidenceScore() {
   return { correct: correct, total: DATA.evidence.cards.length };
 }
 
+/* The cards in the shuffled tray order, so a learner cannot read the
+   grouping off the order they were written in. */
+function evidenceCards() {
+  var byId = {};
+  DATA.evidence.cards.forEach(function (c) {
+    byId[c.id] = c;
+  });
+  return (State.evidenceOrder || [])
+    .map(function (id) {
+      return byId[id];
+    })
+    .filter(Boolean);
+}
+
 function renderEvidence(container) {
   var D = DATA.evidence;
   var checked = State.evidenceChecked;
+  var cards = evidenceCards();
 
-  var unplaced = D.cards.filter(function (c) {
+  var unplaced = cards.filter(function (c) {
     return !State.evidencePlacement[c.id];
   });
 
@@ -621,7 +652,7 @@ function renderEvidence(container) {
 
   var boardsHTML = D.buckets
     .map(function (b) {
-      var inBucket = D.cards.filter(function (c) {
+      var inBucket = cards.filter(function (c) {
         return State.evidencePlacement[c.id] === b.id;
       });
       var dropCls = 'evidence-bucket__drop';
