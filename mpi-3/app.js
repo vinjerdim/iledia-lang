@@ -1,8 +1,8 @@
 'use strict';
 
 /* ============================================================
-   app.js — Application logic for MPI 2
-   English: Place, Quantity & Time
+   app.js — Application logic for MPI 3
+   English: Simple Present — Habits & Facts
 
    Shared utilities (esc, shuffle, the ordering helpers, showNotice,
    buildFeedbackBox, the stage machine, the exercise stage, the store)
@@ -19,7 +19,7 @@
     8.  Stage: Evidence Board
     9.  Stage: Pattern Lab
     10. Stage: Test Your Rules
-    11. Stage: Describe Your Workshop
+    11. Stage: Write Your Profile
     12. Stage: Reflection
     13. Stage: Results
     14. Helpers
@@ -49,12 +49,12 @@ var STAGE_LABELS = [
   'Evidence Board',
   'Pattern Lab',
   'Test Your Rules',
-  'Describe Your Workshop',
+  'Write Your Profile',
   'Reflection',
   'Results',
 ];
 
-var STORAGE_KEY = 'eng-place-quantity-time-v1';
+var STORAGE_KEY = 'eng-simple-present-v1';
 
 /* Enough markers for the longest option list any stage shows. */
 var OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -96,7 +96,7 @@ var State = {
   verificationIdx: 0,
   verificationExercises: [],
 
-  /* Stage 7 — Describe Your Workshop */
+  /* Stage 7 — Write Your Profile */
   builderIdx: 0,
   builderPools: {},
   builderPlaced: {},
@@ -109,7 +109,7 @@ var State = {
   reflectionAnswers: {},
   confidence: null,
 
-  /* Collected across stages 6 and 7 */
+  /* Collected across stages 5, 6 and 7 */
   mistakes: [],
 };
 
@@ -131,15 +131,15 @@ var mistakeLog = createMistakeLog(State);
 function initDerivedState() {
   ensureExerciseArray(State, 'verificationExercises', DATA.verification.soal, defaultExerciseEntry);
 
-  /* The investigation questions are written pattern-first in data.js,
-     which would quietly tell the learner which ones "count". */
+  /* The investigation questions alternate pattern / not-pattern in
+     data.js, which is a rhythm a learner would pick up on. */
   State.questionOrder = keepShuffledOrder(
     State.questionOrder,
     idsOf(DATA.problemStatement.candidates)
   );
 
-  /* The evidence cards arrive grouped by bucket in data.js, which would
-     give the answer away, so the tray order is shuffled. */
+  /* The evidence cards arrive grouped by board in data.js — four of each
+     in a row — which would hand over the whole sort. */
   State.evidenceOrder = keepShuffledOrder(State.evidenceOrder, idsOf(DATA.evidence.cards));
 
   DATA.patternLab.tables.forEach(function (t) {
@@ -448,8 +448,9 @@ function renderNoticeIt(container) {
       '<p style="font-size:0.88rem;color:var(--color-ink-muted);">' +
       D.instruction +
       '</p>' +
-      '<div class="info-board">' +
-      '<span class="info-board__label">Workshop 3 &middot; Information board</span>' +
+      '<div class="profile-card">' +
+      '<span class="profile-card__label">Pen pal exchange &middot; Profile card</span>' +
+      '<span class="profile-card__name">Dina &middot; Class X</span>' +
       '<div class="notice-text">' +
       textHTML +
       '</div></div>' +
@@ -496,7 +497,7 @@ function renderNoticeIt(container) {
    ============================================================ */
 
 /* The candidates in their shuffled order, so the pattern questions do not
-   simply sit at the top of the list. */
+   sit in a predictable rhythm down the list. */
 function questionCandidates() {
   return orderByIds(DATA.problemStatement.candidates, State.questionOrder || []);
 }
@@ -1026,7 +1027,9 @@ function renderPatternLab(container) {
       '<button type="button" class="btn btn--primary btn--large" id="patternNextBtn">' +
       esc(D.nextButtonLabel) +
       '</button></div>'
-    : '<p class="context-note">Complete all four tables and state each rule to continue.</p>';
+    : '<p class="context-note">Complete all ' +
+      D.tables.length +
+      ' tables and state each rule to continue.</p>';
 
   container.innerHTML = stageShell(
     'Pattern Lab',
@@ -1074,6 +1077,20 @@ function renderPatternLab(container) {
       var tableId = btn.dataset.ruleTable;
       if (State.patternRules[tableId]) return;
       State.patternRules[tableId] = btn.dataset.ruleOpt;
+      /* A rule stated wrongly is the most expensive mistake in the module,
+         so it goes on the review list with its evidence attached. */
+      var table = findById(DATA.patternLab.tables, tableId);
+      if (State.patternRules[tableId] !== table.rule.correct) {
+        mistakeLog.record({
+          stage: 'patternLab',
+          stageLabel: 'Pattern Lab',
+          questionId: tableId,
+          label: stripTags(table.title),
+          yourAnswer: stripTags(optionLabel(table.rule, State.patternRules[tableId])),
+          correctAnswer: stripTags(optionLabel(table.rule, table.rule.correct)),
+          explanation: table.rule.explanation,
+        });
+      }
       saveState();
       renderPatternLab(container);
     });
@@ -1160,7 +1177,7 @@ function renderVerification(container) {
 }
 
 /* ============================================================
-   11. STAGE: DESCRIBE YOUR WORKSHOP  (generalisation)
+   11. STAGE: WRITE YOUR PROFILE  (generalisation)
    ============================================================ */
 
 function builderSentence(b) {
@@ -1202,9 +1219,9 @@ function renderGeneralization(container) {
             '"' +
             (correct ? ' disabled' : '') +
             ' aria-label="Remove ' +
-            esc(pool[poolIdx]) +
+            esc(stripTags(pool[poolIdx])) +
             '">' +
-            esc(pool[poolIdx]) +
+            pool[poolIdx] +
             '</button>'
           );
         })
@@ -1222,7 +1239,7 @@ function renderGeneralization(container) {
         '"' +
         (used || correct ? ' disabled' : '') +
         '>' +
-        esc(word) +
+        word +
         '</button>'
       );
     })
@@ -1235,7 +1252,7 @@ function renderGeneralization(container) {
       : buildFeedbackBox(
           'error',
           '&#10007;',
-          esc(D.builderWrong) + ' <span class="explanation-text">' + esc(b.hint) + '</span>'
+          esc(D.builderWrong) + ' <span class="explanation-text">' + b.hint + '</span>'
         );
   }
 
@@ -1296,7 +1313,7 @@ function renderGeneralization(container) {
       '<label for="ownWriting">' +
       esc(D.writeLabel) +
       '</label>' +
-      '<textarea id="ownWriting" class="input-textarea" rows="7" placeholder="' +
+      '<textarea id="ownWriting" class="input-textarea" rows="8" placeholder="' +
       esc(D.writePlaceholder) +
       '">' +
       esc(State.ownWriting) +
@@ -1319,7 +1336,7 @@ function renderGeneralization(container) {
   }
 
   container.innerHTML = stageShell(
-    'Describe Your Workshop',
+    'Write Your Profile',
     D.kicker,
     D.goal,
     '<div class="panel">' +
@@ -1384,11 +1401,11 @@ function renderGeneralization(container) {
         if (!ok) {
           mistakeLog.record({
             stage: 'generalization',
-            stageLabel: 'Describe Your Workshop',
+            stageLabel: 'Write Your Profile',
             questionId: b.id,
             label: b.context,
-            yourAnswer: builderSentence(b).join(' '),
-            correctAnswer: b.parts.join(' '),
+            yourAnswer: stripTags(builderSentence(b).join(' ')),
+            correctAnswer: stripTags(b.parts.join(' ')),
             explanation: b.hint,
           });
         }
@@ -1423,7 +1440,8 @@ function renderGeneralization(container) {
   var countEl = document.getElementById('wordCount');
   function updateCount() {
     if (!countEl) return;
-    countEl.textContent = countWords(State.ownWriting) + ' words written';
+    countEl.textContent =
+      countWords(State.ownWriting) + ' words written · at least ' + D.minWords + ' needed';
   }
   if (writingEl) {
     updateCount();
@@ -1487,7 +1505,7 @@ function renderReflection(container) {
         '<label for="refl-' +
         esc(p.id) +
         '">' +
-        esc(p.label) +
+        p.label +
         '</label>' +
         '<textarea id="refl-' +
         esc(p.id) +
@@ -1597,7 +1615,7 @@ function collectScores() {
       correct: verificationCorrect,
       total: DATA.verification.soal.length,
     },
-    { label: 'Describe Your Workshop', correct: builder.correct, total: builder.total },
+    { label: 'Write Your Profile', correct: builder.correct, total: builder.total },
   ];
 }
 
@@ -1649,7 +1667,7 @@ function renderResults(container) {
 
   var writingHTML = State.ownWriting.trim()
     ? '<div class="panel">' +
-      '<h3>Your information board</h3>' +
+      '<h3>Your profile card</h3>' +
       '<p class="own-writing">' +
       esc(State.ownWriting).replace(/\n/g, '<br>') +
       '</p></div>'
@@ -1713,11 +1731,12 @@ function renderResults(container) {
    ============================================================ */
 
 var RULE_NAMES = {
-  plural: 'plural endings',
-  place: 'place words',
-  time: 'time words',
-  asking: 'question words',
-  mixed: 'all four rules',
+  meaning: 'habits and facts',
+  subject: 'who gets the ending',
+  spelling: 'spelling the ending',
+  negative: 'saying no',
+  question: 'asking',
+  mixed: 'all five rules',
 };
 
 function ruleName(key) {

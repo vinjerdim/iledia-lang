@@ -14,5 +14,13 @@
     "h1": "Place, Quantity & Time",
     "stageCount": 9,
     "extraBody": "partials/reset-modal.html"
+  },
+  "mpi-3": {
+    "title": "Simple Present: Habits & Facts — English",
+    "description": "Interactive learning media that guides learners to discover for themselves when the simple present is used for a habit and when for a fact, which subjects give the verb its -s/-es/-ies ending, and how the same sentence turns into a negative and into a question.",
+    "kicker": "English",
+    "h1": "Simple Present: Habits & Facts",
+    "stageCount": 9,
+    "extraBody": "partials/reset-modal.html"
   }
 }
