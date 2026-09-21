@@ -70,11 +70,30 @@ function checkTextAnswer(input, accepted) {
   });
 }
 
+/*
+ * An unbiased index in [0, limit) taken from the platform CSPRNG.
+ *
+ * Rejection sampling, rather than a plain modulo: 2^32 is not a multiple
+ * of most limits, so `value % limit` would quietly favour the low indices
+ * and the same words would drift towards the front of every word bank.
+ * crypto.getRandomValues needs no secure context, so this still works when
+ * a teacher opens the page straight from disk over file://.
+ */
+function randomIndex(limit) {
+  var range = 4294967296; /* 2^32 — the number of values a Uint32 can hold */
+  var ceiling = range - (range % limit);
+  var buf = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(buf);
+  } while (buf[0] >= ceiling);
+  return buf[0] % limit;
+}
+
 /* Fisher–Yates on a copy — the caller's array is never reordered. */
 function shuffle(arr) {
   var out = arr.slice();
   for (var i = out.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
+    var j = randomIndex(i + 1);
     var tmp = out[i];
     out[i] = out[j];
     out[j] = tmp;

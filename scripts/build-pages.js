@@ -17,9 +17,24 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..');
+const ROOT = path.resolve(__dirname, '..');
 const TEMPLATE_PATH = path.join(ROOT, 'shared', 'page-template.html');
 const MANIFEST_PATH = path.join(ROOT, 'shared', 'pages-manifest.json');
+
+/*
+ * Resolves a path that came out of the manifest and refuses anything that
+ * escapes the repository. The manifest is checked-in data rather than user
+ * input, but this script reads and writes files at paths taken straight
+ * from it, so a stray "../" in a key or an extraBody would silently write
+ * outside the repo.
+ */
+function resolveInsideRepo(...segments) {
+  const target = path.resolve(ROOT, ...segments);
+  if (target !== ROOT && !target.startsWith(ROOT + path.sep)) {
+    throw new Error('Refusing to touch a path outside the repository: ' + target);
+  }
+  return target;
+}
 
 function escapeHtml(str) {
   return String(str)
@@ -43,7 +58,7 @@ function indentBlock(text, indent) {
 
 function renderPage(template, entry) {
   var extraBody = entry.extraBody
-    ? indentBlock(fs.readFileSync(path.join(ROOT, 'shared', entry.extraBody), 'utf8'), '    ')
+    ? indentBlock(fs.readFileSync(resolveInsideRepo('shared', entry.extraBody), 'utf8'), '    ')
     : '';
   var extraScripts = entry.extraScripts
     ? entry.extraScripts
@@ -74,7 +89,7 @@ function main() {
 
   Object.keys(manifest).forEach(function (modulePath) {
     const html = renderPage(template, manifest[modulePath]);
-    const outPath = path.join(ROOT, modulePath, 'index.html');
+    const outPath = resolveInsideRepo(modulePath, 'index.html');
     fs.writeFileSync(outPath, html);
     console.log('Generated ' + path.relative(ROOT, outPath));
   });
