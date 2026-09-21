@@ -73,11 +73,13 @@ var State = {
   questionsSubmitted: false,
 
   /* Stage 4 — Evidence Board */
+  evidenceOrder: [],
   evidencePlacement: {},
   evidencePicked: null,
   evidenceChecked: false,
 
   /* Stage 5 — Pattern Lab */
+  patternRuleOrder: {},
   patternAnswers: {},
   patternTableDone: {},
   patternFirstTry: {},
@@ -116,6 +118,20 @@ var mistakeLog = createMistakeLog(State);
  */
 function initDerivedState() {
   ensureExerciseArray(State, 'verificationExercises', DATA.verification.soal, defaultExerciseEntry);
+
+  /* The evidence cards arrive grouped by bucket in data.js, which would
+     give the answer away, so the tray order is shuffled once and then kept
+     — the cards must not jump around on every re-render or page reload. */
+  State.evidenceOrder = keepShuffledOrder(State.evidenceOrder, idsOf(DATA.evidence.cards));
+
+  /* Same for the rule statements: the correct one is written first in
+     every table, so an unshuffled list would answer itself. */
+  DATA.patternLab.tables.forEach(function (t) {
+    State.patternRuleOrder[t.id] = keepShuffledOrder(
+      State.patternRuleOrder[t.id],
+      idsOf(t.rule.options)
+    );
+  });
 
   /* The word bank is shuffled once and then kept, so the chips do not
      jump around on every re-render or page reload. */
@@ -584,11 +600,26 @@ function evidenceScore() {
   return { correct: correct, total: DATA.evidence.cards.length };
 }
 
+/* The cards in the shuffled tray order, so a learner cannot read the
+   grouping off the order they were written in. */
+function evidenceCards() {
+  var byId = {};
+  DATA.evidence.cards.forEach(function (c) {
+    byId[c.id] = c;
+  });
+  return (State.evidenceOrder || [])
+    .map(function (id) {
+      return byId[id];
+    })
+    .filter(Boolean);
+}
+
 function renderEvidence(container) {
   var D = DATA.evidence;
   var checked = State.evidenceChecked;
+  var cards = evidenceCards();
 
-  var unplaced = D.cards.filter(function (c) {
+  var unplaced = cards.filter(function (c) {
     return !State.evidencePlacement[c.id];
   });
 
@@ -621,7 +652,7 @@ function renderEvidence(container) {
 
   var boardsHTML = D.buckets
     .map(function (b) {
-      var inBucket = D.cards.filter(function (c) {
+      var inBucket = cards.filter(function (c) {
         return State.evidencePlacement[c.id] === b.id;
       });
       var dropCls = 'evidence-bucket__drop';
@@ -865,7 +896,10 @@ function renderPatternLab(container) {
 
       var ruleHTML = '';
       if (unlocked) {
-        var optionsListHTML = table.rule.options
+        var ruleOptions = (State.patternRuleOrder[table.id] || []).map(function (id) {
+          return findById(table.rule.options, id);
+        });
+        var optionsListHTML = ruleOptions
           .map(function (opt, i) {
             var cls = 'option-btn';
             if (chosenRule) {
@@ -1632,6 +1666,27 @@ function renderResults(container) {
 /* ============================================================
    14. HELPERS
    ============================================================ */
+
+function idsOf(list) {
+  return list.map(function (item) {
+    return item.id;
+  });
+}
+
+/* Keeps a stored display order if it still covers exactly `ids`, otherwise
+   builds a fresh shuffle. Re-using the stored order is what stops the
+   cards and options from jumping around on every re-render or reload; the
+   staleness check is what re-seeds it after a reset or a data file that
+   gained an entry. */
+function keepShuffledOrder(current, ids) {
+  var usable =
+    Array.isArray(current) &&
+    current.length === ids.length &&
+    ids.every(function (id) {
+      return current.indexOf(id) !== -1;
+    });
+  return usable ? current : shuffle(ids);
+}
 
 function findById(list, id) {
   return list.filter(function (item) {
